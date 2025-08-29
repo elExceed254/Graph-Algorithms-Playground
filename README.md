@@ -5,7 +5,7 @@ This repository contains implementations of shortest path algorithms in **C**.
 Currently includes **Dijkstra's algorithm** using an adjacency matrix, with random graph generation and runtime benchmarking.
 
 ## Features
-- Random graph generator (configurable vertices and edges).
+- Random undirected graph generator (configurable vertices and edges).
 - Dijkstra’s algorithm (adjacency matrix implementation).
 - Benchmarking with `clock()` to measure runtime.
 - Easily extendable for other algorithms (Bellman-Ford, Floyd-Warshall, adjacency list, etc.).
