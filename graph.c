@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define V 5000  //number of vertices
-#define E 20000  //number of (undirected) edges
+#define V 20  //number of vertices
+#define E 40  //number of (undirected) edges
 #define MAX_WEIGHT 10   //random edge weights (1...10)
 #define INF 999999  //a large 'infinite' distance
 
@@ -66,6 +66,28 @@ void dijkstra(int src) {
     }
 }
 
+//Exporting the full graph to Graphviz to generate an image of the graph
+void exportGraphToDOT(const char *filename) {
+    FILE *f = fopen(filename, "w");
+    if(!f) {
+        printf("Error opening the file!\n");
+        return;
+    }
+
+    fprintf(f, "graph G {\n");
+
+    for (int u = 0; u<V; u++) {
+        for (int v = u+1; v<V; v++) {  //avoiding duplicates in undirected graphs
+            if (graph[u][v] != INF && graph[u][v] != 0) {
+                fprintf(f, " %d -- %d [label=%d];\n", u, v, graph[u][v]);
+            }
+        }
+    }
+
+    fprintf(f, "}\n");
+    fclose(f);
+}
+
 int main () {
     srand(time(NULL));
     generateGraph();
@@ -76,6 +98,9 @@ int main () {
     dijkstra(0);
     end=clock();
     printf("C Dijkstra: %f s\n", (double)(end-start)/CLOCKS_PER_SEC);
+
+    //Exporting full graph
+    exportGraphToDOT("graph.dot");
 
     return 0;
 }

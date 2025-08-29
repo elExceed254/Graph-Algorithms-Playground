@@ -18,3 +18,8 @@
 .qodo/
 .qodo-gen/
 qodo.json
+
+#Graphviz files
+*.dot
+*.png
+*.svg
