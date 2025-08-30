@@ -66,6 +66,21 @@ void dijkstra(int src) {
     }
 }
 
+void bellmanFord(int src) {
+    int dist[V];
+    for (int i=1;i<=V;i++) dist[i] = INF;
+    dist[src]=0;
+
+    // V-1 relaxation passes over all directed edges
+    for (int i=1;i<=V-1;i++) {
+        for (int j=0;j<2*E;j++) {
+            int u=edges[j].u, v=edges[j].v, w=edges[j].w;
+            if (dist[u]!=INF && dist[u]+w<dist[v])
+            dist[v] = dist[u]+w;
+        }
+    }
+}
+
 //Exporting the full graph to Graphviz to generate an image of the graph
 void exportGraphToDOT(const char *filename) {
     FILE *f = fopen(filename, "w");
@@ -98,6 +113,11 @@ int main () {
     dijkstra(0);
     end=clock();
     printf("C Dijkstra: %f s\n", (double)(end-start)/CLOCKS_PER_SEC);
+
+    start=clock();
+    bellmanFord(0);
+    end=clock;
+    printf("C Bellman-Ford: %f s\n", (double)(end-start)/CLOCKS_PER_SEC);
 
     //Exporting full graph
     exportGraphToDOT("graph.dot");
