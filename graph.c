@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define V 20  //number of vertices
-#define E 40  //number of (undirected) edges
+#define V 1300  //number of vertices
+#define E 7000  //number of (undirected) edges
 #define MAX_WEIGHT 10   //random edge weights (1...10)
 #define INF 999999  //a large 'infinite' distance
 
@@ -81,6 +81,22 @@ void bellmanFord(int src) {
     }
 }
 
+void floydWarshall() {
+    int dist[V][V];
+
+    // copy adjacency matrix into dist
+    for (int i=0;i<V;i++)
+        for (int j=0;j<V;j++)
+            dist[i][j]=graph[i][j];
+
+    // dynamic programming: allow intermediate nodes up to k
+    for (int k=0;k<V;k++)
+        for (int i=0;i<V;i++)
+            for (int j=0;j<V;j++)
+                if (dist[i][k]+dist[k][j]<dist[i][j])
+                    dist[i][j]= dist[i][k]+dist[k][j];
+}
+
 //Exporting the full graph to Graphviz to generate an image of the graph
 void exportGraphToDOT(const char *filename) {
     FILE *f = fopen(filename, "w");
@@ -116,8 +132,13 @@ int main () {
 
     start=clock();
     bellmanFord(0);
-    end=clock;
+    end=clock();
     printf("C Bellman-Ford: %f s\n", (double)(end-start)/CLOCKS_PER_SEC);
+
+    start=clock();
+    floydWarshall();
+    end=clock();
+    printf("C Floyd-Warshall: %f s\n", (double)(end-start)/CLOCKS_PER_SEC);
 
     //Exporting full graph
     exportGraphToDOT("graph.dot");
