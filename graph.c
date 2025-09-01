@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define V 1300  //number of vertices
-#define E 7000  //number of (undirected) edges
+#define V 10  //number of vertices
+#define E 20  //number of (undirected) edges
 #define MAX_WEIGHT 10   //random edge weights (1...10)
 #define INF 999999  //a large 'infinite' distance
 
@@ -38,31 +38,41 @@ void generateGraph(){
 // Dijkstra (Adj Matrix)
 //-----------------------
 int minDistance(int dist[], bool sptSet[]) {
-    int min = INT_MAX, min_index=0;
-    for (int v=0; v<V; v++)
-        if (!sptSet[v] && dist[v]<=min)
+    int min = INT_MAX, min_index= -1;
+    for (int v=0; v<V; v++) {
+        if (!sptSet[v] && dist[v]<=min) {
             min=dist[v], min_index=v;
+        }
+    }
     return min_index;
 }
 
-void dijkstra(int src) {
+// Adding parent[] array to keep track of best shortest path
+void dijkstra(int src, int parent[]) {
     int dist[V];
     bool sptSet[V];
 
     // initialize distances and visited set
-    for (int i=0;i<V;i++) dist[i]=INF, sptSet[i] = false;
+    for (int i=0;i<V;i++) {
+        dist[i]=INF, sptSet[i] = false;
+        parent[i] = -1; // no parent yet
+    }
     dist[src] = 0;
 
     // repeat V-1 times: pick closest unvisited u, then relax edges u->v
     for (int count=0; count<V-1; count++) {
         int u=minDistance(dist,sptSet);
+        if (u == -1) break;
         sptSet[u]= true;
 
         //Relax edges from u to all v
-        for (int v=0; v<V; v++)
+        for (int v=0; v<V; v++) {
             if (!sptSet[v] && graph[u][v]!=INF &&
-                dist[u]+graph[u][v]<dist[v])
+                dist[u]+graph[u][v]<dist[v]) {
                 dist[v]=dist[u]+graph[u][v];
+                parent[v] = u;  // store shortest path tree edge
+            }
+        } 
     }
 }
 
@@ -119,14 +129,42 @@ void exportGraphToDOT(const char *filename) {
     fclose(f);
 }
 
+// Export SPT to Graphiz
+void exportSPTToDOT(const char *filename, int parent[]) {
+    FILE *f = fopen(filename, "w");
+    if (!f) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    fprintf(f, "graph SPT {\n");
+    // show all nodes including isolated ones
+    for (int i = 0; i < V; i++)
+        fprintf(f, " %d;\n", i);
+
+    for (int v = 0; v<V; v++) {
+        if (parent[v] != -1) {
+            // edge from parent[v] -> v with weight
+            fprintf(f, " %d -- %d [label=%d, color=red, penwidth=2];\n", parent[v], v, graph[parent[v]][v]);
+        }
+    }
+
+    // highlight source(0)
+    fprintf(f, " 0 [style=filled, fillcolor=yellow];\n");
+
+    fprintf(f, "}\n");
+    fclose(f);
+}
+
 int main () {
     srand(time(NULL));
     generateGraph();
 
     clock_t start, end;
+    int parent[V];
 
     start=clock();
-    dijkstra(0);
+    dijkstra(0, parent);
     end=clock();
     printf("C Dijkstra: %f s\n", (double)(end-start)/CLOCKS_PER_SEC);
 
@@ -140,8 +178,9 @@ int main () {
     end=clock();
     printf("C Floyd-Warshall: %f s\n", (double)(end-start)/CLOCKS_PER_SEC);
 
-    //Exporting full graph
+    //Exporting graphs
     exportGraphToDOT("graph.dot");
+    exportSPTToDOT("spt.dot", parent);
 
     return 0;
 }
